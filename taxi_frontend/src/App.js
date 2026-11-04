@@ -5,6 +5,7 @@ import PaidOutlinedIcon from "@mui/icons-material/PaidOutlined";
 import PlaceOutlinedIcon from "@mui/icons-material/PlaceOutlined";
 import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
 import InsightsOutlinedIcon from "@mui/icons-material/InsightsOutlined";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import "./components/charts/setup";
 import AppShell from "./components/AppShell";
 import OverviewView from "./views/OverviewView";
@@ -12,6 +13,7 @@ import RevenueView from "./views/RevenueView";
 import OperationsView from "./views/OperationsView";
 import DataQualityView from "./views/DataQualityView";
 import DashView from "./views/DashView";
+import AboutView from "./views/AboutView";
 import useDashboardData from "./hooks/useDashboardData";
 import { DEMO_MODE, dailyCsvUrl, getTables } from "./api";
 import DemoNotice from "./components/DemoNotice";
@@ -22,6 +24,7 @@ export const VIEWS = [
   { id: "operations", label: "Demand & locations", icon: PlaceOutlinedIcon, component: OperationsView },
   { id: "quality", label: "Data quality", icon: FactCheckOutlinedIcon, component: DataQualityView },
   { id: "dash", label: "Dash dashboard", icon: InsightsOutlinedIcon, component: DashView, standalone: true },
+  { id: "about", label: "About this project", icon: InfoOutlinedIcon, component: AboutView, standalone: true },
 ];
 
 const DEFAULT_TABLE = "tlc_yellow_trips_2015";

@@ -90,3 +90,48 @@ def test_fare_distribution_clips_tail(trips):
     dist = analytics.fare_distribution(trips, bins=3, clip_pct=50)
     assert sum(dist["counts"]) == 2  # the flagged $40 fare is excluded; 30 is above p50
     assert dist["clipped_above"] == 20.0
+
+
+def test_weekday_hour_matrix(trips):
+    grid = analytics.weekday_hour(trips)
+    assert len(grid["trips"]) == 7 and all(len(row) == 24 for row in grid["trips"])
+    # 2015-01-01 was a Thursday (index 3): two trips at 08:00 and one at 18:00.
+    assert grid["trips"][3][8] == 2 and grid["trips"][3][18] == 1
+    assert sum(map(sum, grid["trips"])) == len(trips)
+
+
+def _payload(**overrides):
+    payload = {
+        "kpis": {"trips": 100, "gross_revenue": 1000.0, "gross_revenue_ex_outliers": 500.0,
+                 "outlier_rate_pct": 4.0, "avg_card_tip_pct": 17.0, "card_share_pct": 60.0},
+        "daily": [{"date": "2015-03-10", "revenue": 900.0, "rolling_mean": 600.0, "is_anomaly": True}],
+        "boroughs": [{"borough": "Manhattan", "trips": 70, "avg_fare": 20.0, "revenue_share_pct": 70.0},
+                     {"borough": "Brooklyn", "trips": 30, "avg_fare": 15.0, "revenue_share_pct": 30.0}],
+        "hourly": [{"hour": h, "trips": 10 if h == 19 else 2, "share_pct": 1.0} for h in range(24)],
+        "weekday_hour": {"trips": [[1] * 24] * 6 + [[2] * 24]},
+    }
+    payload.update(overrides)
+    return payload
+
+
+def test_key_findings_are_specific_and_ordered_by_importance():
+    findings = analytics.key_findings(_payload())
+    ids = [f["id"] for f in findings]
+    assert ids[:2] == ["flagged_revenue", "anomalies"]  # things to act on come first
+    by_id = {f["id"]: f for f in findings}
+    assert by_id["flagged_revenue"]["tone"] == "warning"
+    assert "50% of revenue" in by_id["flagged_revenue"]["title"]
+    assert "Mar 10" in by_id["anomalies"]["detail"] and "50% above" in by_id["anomalies"]["detail"]
+    assert by_id["borough_concentration"]["title"] == "Manhattan generates 70% of revenue"
+    assert by_id["peak_demand"]["title"] == "Demand peaks at 19:00–20:00"
+    assert by_id["weekly_pattern"]["title"] == "Sunday is the busiest day"
+
+
+def test_key_findings_skip_what_the_data_cannot_support():
+    findings = analytics.key_findings(_payload(daily=[], boroughs=[{"borough": "Unknown"}]))
+    ids = {f["id"] for f in findings}
+    assert "anomalies" not in ids and "borough_concentration" not in ids
+    small = analytics.key_findings(_payload(kpis={"trips": 10, "gross_revenue": 100.0,
+                                                  "gross_revenue_ex_outliers": 98.0, "outlier_rate_pct": 1.0}))
+    assert next(f for f in small if f["id"] == "flagged_revenue")["tone"] == "insight"
+    assert analytics.key_findings({"kpis": {"trips": 0}}) == []

@@ -7,6 +7,7 @@ import PageHeader from "../components/PageHeader";
 import KpiCard from "../components/KpiCard";
 import HourlyChart from "../components/charts/HourlyChart";
 import FareHistogram from "../components/charts/FareHistogram";
+import DemandHeatmap from "../components/charts/DemandHeatmap";
 import ChartLegend from "../components/charts/Legend";
 import LocationMap from "../components/LocationMap";
 import { chartColors } from "../theme";
@@ -41,6 +42,14 @@ export default function OperationsView({ headline, analytics }) {
       </Grid>
 
       <Grid container spacing={2}>
+        <Grid item xs={12}>
+          <Panel
+            title="Demand by weekday and hour"
+            subtitle="Trips by pickup time. Darker cells are busier; hover a cell for the count."
+          >
+            <DemandHeatmap grid={analytics?.weekday_hour} />
+          </Panel>
+        </Grid>
         <Grid item xs={12} lg={6}>
           <Panel title="Trips by pickup hour">
             <HourlyChart hourly={analytics?.hourly} height={280} />

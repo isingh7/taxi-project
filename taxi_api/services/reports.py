@@ -39,7 +39,9 @@ def analytics_payload(table: str) -> dict | None:
         "fare_distribution": analytics.fare_distribution(df),
         "boroughs": sql_reports.borough_league_table(table),
         "top_routes": sql_reports.top_routes(table, limit=10),
+        "weekday_hour": analytics.weekday_hour(df),
     }
+    payload["findings"] = analytics.key_findings(payload)
     cache.set(key, payload, 60 * 60)
     return payload
 

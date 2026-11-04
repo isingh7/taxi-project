@@ -67,19 +67,20 @@ class Command(BaseCommand):
         figures in the browser instead. They stay identical to the live dashboard.
         """
         data = client.get(f"/api/analytics/{table}/").json()
-        figures = {
-            "daily": dash_figures.daily_revenue_figure(data["daily"]),
-            "drawdown": dash_figures.drawdown_figure(data["daily"]),
-            "hourly": dash_figures.hourly_figure(data["hourly"]),
-            "fares": dash_figures.fare_histogram_figure(data["fare_distribution"]),
-            "boroughs": dash_figures.ranked_bar_figure(
-                data["boroughs"], "borough", "revenue", "Revenue by pickup borough", "$"
-            ),
-            "payments": dash_figures.ranked_bar_figure(
-                data["payment_mix"], "payment_type", "trips", "Trips by payment type"
-            ),
+        payload = {
+            "findings": data.get("findings", []),
+            "charts": [
+                {
+                    "id": chart.id,
+                    "title": chart.title,
+                    "subtitle": chart.subtitle_for(data),
+                    "height": chart.height,
+                    "full_width": chart.full_width,
+                    "figure": json.loads(chart.build(data).to_json()),
+                }
+                for chart in dash_figures.CHARTS
+            ],
         }
         target = out / "dash" / f"{table}.json"
         target.parent.mkdir(parents=True, exist_ok=True)
-        payload = {name: json.loads(fig.to_json()) for name, fig in figures.items()}
         target.write_text(json.dumps(payload, separators=(",", ":")), encoding="utf-8")

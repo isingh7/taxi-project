@@ -3,11 +3,12 @@ import { Alert, Link } from "@mui/material";
 
 export const REPO_URL = process.env.REACT_APP_REPO_URL || "https://github.com/isingh7/taxi-project";
 
+// localStorage so the notice stays dismissed across visits.
 const STORAGE_KEY = "demo-notice-dismissed";
 
 const wasDismissed = () => {
   try {
-    return window.sessionStorage.getItem(STORAGE_KEY) === "1";
+    return window.localStorage.getItem(STORAGE_KEY) === "1";
   } catch {
     return false;
   }
@@ -21,18 +22,21 @@ export default function DemoNotice() {
   const dismiss = () => {
     setOpen(false);
     try {
-      window.sessionStorage.setItem(STORAGE_KEY, "1");
+      window.localStorage.setItem(STORAGE_KEY, "1");
     } catch {
       // Storage can be blocked; the notice just reappears on the next visit.
     }
   };
 
   return (
-    <Alert severity="info" variant="outlined" onClose={dismiss} sx={{ mb: 3, bgcolor: "background.paper" }}>
-      <strong>Live demo.</strong> The figures come from a synthetic sample of about 20,000 NYC taxi trips per
-      dataset, generated with realistic data defects so the quality checks have something to catch. The full
-      version runs a Python API that loads the real trip data from Google BigQuery.{" "}
-      <Link href={REPO_URL} target="_blank" rel="noreferrer">View the source code</Link>.
+    <Alert
+      severity="info"
+      variant="outlined"
+      onClose={dismiss}
+      sx={{ mb: 3, py: 0, bgcolor: "background.paper", "& .MuiAlert-message": { py: 1 } }}
+    >
+      Demo with synthetic sample data (about 20,000 trips per dataset, including deliberate data defects).{" "}
+      <Link href={REPO_URL} target="_blank" rel="noreferrer">Source code</Link>
     </Alert>
   );
 }

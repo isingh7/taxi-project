@@ -45,6 +45,15 @@ const analytics = {
   fare_distribution: { edges: [0, 10, 20], counts: [5, 3], clipped_above: 41 },
   boroughs: [{ borough: "Manhattan", trips: 9264, revenue: 243531.14, avg_fare: 24.2, revenue_share_pct: 66.88, revenue_rank: 1 }],
   top_routes: [{ pickup_zone: "Brooklyn", dropoff_zone: "Midtown Manhattan", trips: 1702, avg_total: 25.24, avg_minutes: 13.9 }],
+  weekday_hour: {
+    weekdays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+    hours: [...Array(24).keys()],
+    trips: Array.from({ length: 7 }, (_, d) => Array.from({ length: 24 }, (_, h) => d * 24 + h)),
+  },
+  findings: [
+    { id: "flagged_revenue", tone: "warning", title: "Flagged trips are 3.8% of trips but 48% of revenue", detail: "Review them." },
+    { id: "borough_concentration", tone: "insight", title: "Manhattan generates 68% of revenue", detail: "12,451 trips." },
+  ],
 };
 const quality = {
   id: 7, source: "synthetic", finished_at: "2026-11-04T14:41:54Z", rows_loaded: 14073,
@@ -72,14 +81,15 @@ beforeEach(() => {
   getIngestionRuns.mockResolvedValue([{ id: 7, source: "synthetic", source_table: TABLE, status: "success", finished_at: quality.finished_at, rows_loaded: 14073, rows_rejected: 927 }]);
 });
 
-test("overview shows KPIs, highlights and the data source", async () => {
+test("overview shows KPIs, key findings and the data source", async () => {
   renderApp();
   expect(await screen.findByText("$364.2K")).toBeInTheDocument();
   expect(screen.getByText("14,073")).toBeInTheDocument();
   expect(screen.getByText("$9.84")).toBeInTheDocument();
   expect(screen.getByText("92.9%")).toBeInTheDocument();
-  expect(screen.getByText("18:00–19:00")).toBeInTheDocument();
-  expect(screen.getByText("Manhattan")).toBeInTheDocument();
+  expect(screen.getByText("Flagged trips are 3.8% of trips but 48% of revenue")).toBeInTheDocument();
+  expect(screen.getByText("Check")).toBeInTheDocument(); // tone shown as a word, not only a colour
+  expect(screen.getByText("Insight")).toBeInTheDocument();
   expect(screen.getByText("Local store")).toBeInTheDocument();
   expect(screen.getByRole("link", { name: /Export CSV/ })).toHaveAttribute("href", `/api/analytics/${TABLE}/daily.csv`);
 });
@@ -150,4 +160,20 @@ describe("Dash dashboard view", () => {
     expect(await screen.findByText("The Dash dashboard is not running")).toBeInTheDocument();
     expect(screen.getByText("python -m dashboard.app")).toBeInTheDocument();
   });
+});
+
+test("demand view shows the weekday x hour heatmap", async () => {
+  window.location.hash = "operations";
+  renderApp();
+  const grid = await screen.findByRole("table", { name: "Trips by weekday and pickup hour" });
+  expect(within(grid).getByLabelText("Sunday 23:00, 167 trips")).toBeInTheDocument();
+});
+
+test("about page explains the project without needing the API", async () => {
+  getAnalytics.mockRejectedValue(new Error("down"));
+  window.location.hash = "about";
+  renderApp();
+  expect(await screen.findByRole("heading", { name: "About this project" })).toBeInTheDocument();
+  expect(screen.getByText("Requirements I challenged")).toBeInTheDocument();
+  expect(screen.getByRole("link", { name: /Source code/ })).toHaveAttribute("href", expect.stringContaining("github.com"));
 });

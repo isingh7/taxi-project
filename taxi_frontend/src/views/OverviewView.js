@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Grid, Stack, Typography, Divider } from "@mui/material";
+import { Grid } from "@mui/material";
 import PaidOutlinedIcon from "@mui/icons-material/PaidOutlined";
 import LocalTaxiOutlinedIcon from "@mui/icons-material/LocalTaxiOutlined";
 import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined";
@@ -7,28 +7,16 @@ import VerifiedOutlinedIcon from "@mui/icons-material/VerifiedOutlined";
 import KpiCard from "../components/KpiCard";
 import Panel from "../components/Panel";
 import PageHeader from "../components/PageHeader";
+import FindingsList from "../components/FindingsList";
 import RevenueChart from "../components/charts/RevenueChart";
 import HourlyChart from "../components/charts/HourlyChart";
 import ChartLegend from "../components/charts/Legend";
 import { chartColors } from "../theme";
-import { hourRange, minutes, money, moneyCompact, num, pct, tableLabel } from "../format";
+import { minutes, money, moneyCompact, num, pct, tableLabel } from "../format";
 
-function Highlight({ label, value, caption }) {
-  return (
-    <Box sx={{ py: 1.5 }}>
-      <Typography variant="body2" color="text.secondary">{label}</Typography>
-      <Typography variant="h6" component="p" sx={{ fontSize: "1.15rem", mt: 0.25 }}>{value}</Typography>
-      {caption && <Typography variant="caption" color="text.secondary">{caption}</Typography>}
-    </Box>
-  );
-}
-
-export default function OverviewView({ table, headline, analytics, quality }) {
+export default function OverviewView({ table, analytics, quality }) {
   const k = analytics?.kpis || {};
   const report = quality?.quality_report;
-  const anomalies = (analytics?.daily || []).filter((d) => d.is_anomaly).length;
-  const topBorough = analytics?.boroughs?.[0];
-  const peak = headline?.most_popular_time_of_day;
 
   return (
     <>
@@ -75,6 +63,15 @@ export default function OverviewView({ table, headline, analytics, quality }) {
       <Grid container spacing={2}>
         <Grid item xs={12}>
           <Panel
+            title="Key findings"
+            subtitle="Written by the analytics layer from this dataset. Items marked Check need attention before the numbers are used."
+          >
+            <FindingsList findings={analytics?.findings} />
+          </Panel>
+        </Grid>
+
+        <Grid item xs={12}>
+          <Panel
             title="Daily revenue"
             subtitle="Total fare revenue per day, with the trailing 7-day average"
             actions={
@@ -91,36 +88,9 @@ export default function OverviewView({ table, headline, analytics, quality }) {
           </Panel>
         </Grid>
 
-        <Grid item xs={12} lg={8}>
+        <Grid item xs={12}>
           <Panel title="Demand by hour" subtitle="Trips by pickup hour across the period">
             <HourlyChart hourly={analytics?.hourly} />
-          </Panel>
-        </Grid>
-
-        <Grid item xs={12} lg={4}>
-          <Panel title="Highlights">
-            <Stack divider={<Divider flexItem />}>
-              <Highlight
-                label="Busiest pickup hour"
-                value={hourRange(peak?.hour)}
-                caption={peak ? `${num(peak.count)} trips` : undefined}
-              />
-              <Highlight
-                label="Top borough by revenue"
-                value={topBorough?.borough ?? "–"}
-                caption={topBorough ? `${pct(topBorough.revenue_share_pct)} of revenue` : undefined}
-              />
-              <Highlight
-                label="Card tip rate"
-                value={pct(k.avg_card_tip_pct)}
-                caption={`${pct(k.card_share_pct, 0)} of trips paid by card`}
-              />
-              <Highlight
-                label="Unusual revenue days"
-                value={num(anomalies)}
-                caption="More than 3σ away from the previous week"
-              />
-            </Stack>
           </Panel>
         </Grid>
       </Grid>

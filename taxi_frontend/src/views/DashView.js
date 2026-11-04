@@ -18,12 +18,8 @@ function DashStatic({ table }) {
     <>
       <PageHeader
         title="Dash dashboard"
-        description={`The Plotly Dash version of the dashboard for ${tableLabel(table)} trips. The charts come from the same Python code as the Dash app and are interactive: hover, zoom or drag to explore.`}
+        description={`The Plotly Dash version of the dashboard for ${tableLabel(table)} trips, built from the Dash app's own Python chart code when this site was published. Hover, zoom or drag to explore.`}
       />
-      <Alert severity="info" variant="outlined" sx={{ mb: 2, bgcolor: "background.paper" }}>
-        This hosted demo has no Python server, so the charts were generated when the site was built. To run the full
-        Dash app, clone the repository and run <code>python -m dashboard.app</code>.
-      </Alert>
       <DashFigures table={table} />
     </>
   );

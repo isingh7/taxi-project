@@ -1,20 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Alert, Box, Card, CircularProgress, Grid } from "@mui/material";
+import { Alert, Box, CircularProgress, Grid } from "@mui/material";
+import Panel from "./Panel";
+import FindingsList from "./FindingsList";
 import { API_URL } from "../api";
 
 // Same plotly.js version the Python Plotly package (5.22) bundles, so the charts
 // render exactly as they do in the Dash server.
 const PLOTLY_SRC = "https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.32.0/plotly.min.js";
-
-// Mirrors GRAPH_HEIGHTS in dashboard/app.py. Fixed heights keep charts from resizing in a loop.
-export const FIGURE_LAYOUT = [
-  { id: "daily", height: 340, full: true },
-  { id: "drawdown", height: 240, full: true },
-  { id: "hourly", height: 320 },
-  { id: "fares", height: 320 },
-  { id: "boroughs", height: 300 },
-  { id: "payments", height: 300 },
-];
 
 export const dashFiguresUrl = (table) => `${API_URL}/dash/${table}.json`;
 
@@ -29,7 +21,7 @@ function loadPlotly() {
       script.onload = () => resolve(window.Plotly);
       script.onerror = () => {
         plotlyPromise = null;
-        reject(new Error("Could not load the charting library."));
+        reject(new Error("Could not load the charting library. Check your connection and reload."));
       };
       document.head.appendChild(script);
     });
@@ -48,6 +40,7 @@ function PlotlyFigure({ figure, height }) {
       Plotly.react(el, figure.data, { ...figure.layout, autosize: true }, {
         responsive: true,
         displaylogo: false,
+        modeBarButtonsToRemove: ["lasso2d", "select2d"],
       });
     });
     return () => {
@@ -56,12 +49,13 @@ function PlotlyFigure({ figure, height }) {
     };
   }, [figure]);
 
+  // Fixed height: the container sets the size, so a resize can never grow the chart.
   return <Box ref={ref} sx={{ height, width: "100%" }} />;
 }
 
 /**
- * The Dash dashboard's charts for one dataset, built in Python by the same figure
- * code as the Dash server and drawn here with plotly.js. Used on static hosting.
+ * The Dash dashboard for one dataset: findings plus the charts, built at deploy time by
+ * the Dash app's own Python figure code (dashboard/figures.py) and drawn with plotly.js.
  */
 export default function DashFigures({ table }) {
   const [state, setState] = useState({ loading: true });
@@ -69,11 +63,14 @@ export default function DashFigures({ table }) {
   useEffect(() => {
     let cancelled = false;
     setState({ loading: true });
-    Promise.all([fetch(dashFiguresUrl(table)).then((r) => {
-      if (!r.ok) throw new Error("These charts are not included in the demo snapshot.");
-      return r.json();
-    }), loadPlotly()])
-      .then(([figures]) => !cancelled && setState({ figures }))
+    Promise.all([
+      fetch(dashFiguresUrl(table)).then((r) => {
+        if (!r.ok) throw new Error("These charts are not included in the demo snapshot.");
+        return r.json();
+      }),
+      loadPlotly(),
+    ])
+      .then(([dash]) => !cancelled && setState({ dash }))
       .catch((error) => !cancelled && setState({ error: error.message }));
     return () => {
       cancelled = true;
@@ -90,11 +87,16 @@ export default function DashFigures({ table }) {
   }
   return (
     <Grid container spacing={2}>
-      {FIGURE_LAYOUT.map(({ id, height, full }) => (
-        <Grid item xs={12} lg={full ? 12 : 6} key={id}>
-          <Card sx={{ overflow: "hidden", bgcolor: "#fcfcfb" }}>
-            <PlotlyFigure figure={state.figures[id]} height={height} />
-          </Card>
+      <Grid item xs={12}>
+        <Panel title="Key findings" subtitle="Written from the data for this dataset.">
+          <FindingsList findings={state.dash.findings} />
+        </Panel>
+      </Grid>
+      {state.dash.charts.map((chart) => (
+        <Grid item xs={12} lg={chart.full_width ? 12 : 6} key={chart.id}>
+          <Panel title={chart.title} subtitle={chart.subtitle} contentSx={{ px: 1, pb: "8px !important" }}>
+            <PlotlyFigure figure={chart.figure} height={chart.height} />
+          </Panel>
         </Grid>
       ))}
     </Grid>

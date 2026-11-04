@@ -1,5 +1,8 @@
 # NYC Taxi Revenue & Operations Analytics
 
+[![CI](https://github.com/isingh7/taxi-project/actions/workflows/ci.yml/badge.svg)](https://github.com/isingh7/taxi-project/actions/workflows/ci.yml)
+[![Deploy demo](https://github.com/isingh7/taxi-project/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/isingh7/taxi-project/actions/workflows/deploy-pages.yml)
+
 **Live demo: https://isingh7.github.io/taxi-project/**. The demo is the React app reading a static snapshot of the API, built by GitHub Actions from synthetic sample data (see [`deploy-pages.yml`](.github/workflows/deploy-pages.yml)). The Dash tab shows a preview there, because Dash needs a Python server.
 
 A full-stack data application for New York TLC taxi data. A Python ETL pipeline
@@ -57,6 +60,7 @@ Or run the whole stack with Postgres: `docker compose up --build`, then
 | **Integrating multiple sources** | BigQuery + CSV + synthetic behind one extract interface; reference-data joins; payment codes from different source systems harmonised (`CSH`/`CRD`/`1`/`1.0`) | [`sources.py`](taxi_api/services/sources.py), [`constants.py`](taxi_api/constants.py) |
 | **Back end** | Django REST API: headline stats with BigQuery → local fallback, analytics, data-quality and audit endpoints, CSV export; env-driven settings; caching | [`views.py`](taxi_api/views.py), [`settings.py`](taxi_project/settings.py) |
 | **Front end** | React + Material UI analytics app: sidebar navigation across five linkable views (Overview, Revenue, Demand & locations, Data quality, and the Dash dashboard embedded in the page), KPI cards, Chart.js charts, styled map, responsive down to phone width, plain-English errors, CSV export | [`taxi_frontend/src`](taxi_frontend/src) |
+| **Business-ready insight** | The analytics layer writes plain-English key findings (e.g. "Flagged trips are 3.8% of trips but 48% of revenue"), marked *Check* or *Insight*, plus a weekday × hour demand heatmap | [`analytics.py`](taxi_api/services/analytics.py) |
 | **Dashboard design** | Plotly Dash: KPI tiles, daily revenue with 7-day average and anomaly markers, drawdown, hourly demand, fare distribution, ranked borough/payment bars, sortable DQ report. Colour-blind-safe palette, one y-axis per chart | [`dashboard/`](dashboard) |
 | **Testable, high-quality code** | 75 pytest tests (90% coverage) + 12 Jest tests; ruff lint; CI runs the suite on **both** SQLite and Postgres | [`taxi_api/tests`](taxi_api/tests), [`.github/workflows/ci.yml`](.github/workflows/ci.yml) |
 | **Data quality and ownership** | 12 documented rules (reject / fix / flag); every load audited with row counts and reasons; totals reconcile | [`docs/DATA_DICTIONARY.md`](docs/DATA_DICTIONARY.md) |

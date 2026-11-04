@@ -1,25 +1,72 @@
+/* Matches the React app's theme so the embedded dashboard looks native. */
 :root {
-  --surface: #fcfcfb; --plane: #f9f9f7; --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
-  --border: rgba(11, 11, 11, 0.10);
+  --bg: #f6f7f9; --surface: #ffffff; --ink: #14171f; --ink-2: #5b6170; --muted: #898781;
+  --border: #e3e6eb; --accent: #1f5fbf; --accent-soft: #e8f0fb;
+  --warn: #8a5a00; --warn-soft: #fbf1dc;
 }
-body { margin: 0; background: var(--plane); color: var(--ink);
-       font-family: Inter, -apple-system, "Segoe UI", Roboto, sans-serif; }
-.page { max-width: 1240px; margin: 0 auto; padding: 24px 16px 48px; }
-header h1 { font-size: 24px; margin: 0 0 4px; }
-header p { color: var(--ink-2); margin: 0 0 20px; }
-h2 { font-size: 17px; margin: 28px 0 12px; }
-.filters { display: flex; gap: 12px; align-items: center; margin-bottom: 20px; }
-.filters label { font-weight: 600; color: var(--ink-2); }
-.filters > div { flex: 1; max-width: 420px; }
-.kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-bottom: 16px; }
-.kpi { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
-.kpi-label { font-size: 12px; color: var(--ink-2); text-transform: uppercase; letter-spacing: .04em; }
-.kpi-value { font-size: 26px; font-weight: 650; margin: 4px 0; font-variant-numeric: tabular-nums; }
-.kpi-note { font-size: 12px; color: var(--muted); }
-.page.embed { padding-top: 16px; }
-/* align-items:start stops grid rows stretching cards to each other's height. */
-.grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 12px; align-items: start; }
-/* The border lives on a wrapper card, never on the Plotly element itself. */
-.card, .dash-table-container { border: 1px solid var(--border); border-radius: 10px;
-       overflow: hidden; margin-bottom: 12px; background: var(--surface); }
-@media (max-width: 480px) { .grid-2 { grid-template-columns: 1fr; } }
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font-family: Inter, -apple-system, "Segoe UI", Roboto, sans-serif; font-size: 14px; line-height: 1.5;
+  font-feature-settings: "tnum" 1;
+}
+
+/* Top bar (hidden when embedded in the React app) */
+.topbar {
+  display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 12px max(16px, calc((100% - 1240px) / 2));
+}
+.brand { display: flex; gap: 10px; align-items: center; }
+.brand-mark {
+  width: 34px; height: 34px; border-radius: 8px; background: var(--ink); color: #f5c518;
+  display: grid; place-items: center; font-size: 11px; font-weight: 700; letter-spacing: 0.04em;
+}
+.brand strong { display: block; line-height: 1.1; }
+.brand span:not(.brand-mark) { font-size: 12px; color: var(--ink-2); }
+.filters { display: flex; gap: 10px; align-items: center; min-width: min(360px, 100%); }
+.filters label { font-weight: 600; color: var(--ink-2); font-size: 13px; }
+.filters > div { flex: 1; }
+
+/* Page */
+.page { max-width: 1240px; margin: 0 auto; padding: 24px 16px 48px; display: grid; gap: 16px; }
+.embed .page { padding-top: 8px; }
+.page-head h1 { font-size: 22px; letter-spacing: -0.01em; margin: 0 0 4px; }
+.page-head p { color: var(--ink-2); margin: 0; }
+.embed .page-head { display: none; }
+.page > div > div { display: grid; gap: 16px; }
+
+/* Cards */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.card-head { padding: 16px 20px 4px; }
+.card-head h3 { font-size: 15px; font-weight: 650; margin: 0; }
+.card-head p { color: var(--ink-2); font-size: 13px; margin: 2px 0 0; max-width: 80ch; }
+.grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 16px; align-items: start; }
+.table-wrap { padding: 4px 8px 12px; overflow-x: auto; }
+.muted { color: var(--ink-2); padding: 0 20px 16px; margin: 0; }
+
+/* KPI tiles */
+.kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+.kpi { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
+.kpi-label { font-size: 11px; font-weight: 600; color: var(--ink-2); text-transform: uppercase; letter-spacing: 0.06em; }
+.kpi-value { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; margin: 6px 0 2px; }
+.kpi-note { font-size: 12px; color: var(--ink-2); }
+
+/* Key findings */
+.findings {
+  list-style: none; margin: 0; padding: 8px 20px 16px;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 4px 28px;
+}
+.finding { display: grid; grid-template-columns: auto 1fr; gap: 12px; padding: 10px 0; border-top: 1px solid #eef0f3; }
+.finding-title { font-weight: 600; }
+.finding-detail { margin: 2px 0 0; color: var(--ink-2); font-size: 13px; }
+.tone {
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+  padding: 2px 8px; border-radius: 999px; height: fit-content; margin-top: 2px;
+}
+.tone-insight { color: var(--accent); background: var(--accent-soft); }
+.tone-warning { color: var(--warn); background: var(--warn-soft); }
+
+@media (max-width: 520px) {
+  .grid-2, .findings { grid-template-columns: 1fr; }
+}
