@@ -1,18 +1,49 @@
 import React, { useEffect, useState } from "react";
-import { Alert, AlertTitle, Box, Button, Card, CircularProgress } from "@mui/material";
+import { Alert, AlertTitle, Box, Button, Card, CircularProgress, Typography } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import PageHeader from "../components/PageHeader";
-import { DASHBOARD_URL } from "../api";
+import { DASHBOARD_URL, DEMO_MODE } from "../api";
 import { tableLabel } from "../format";
 
 export const dashEmbedUrl = (table) =>
   `${DASHBOARD_URL.replace(/\/$/, "")}/?table=${encodeURIComponent(table)}&embed=1`;
 
+/** On a static host there is no Python server, so show a captured preview instead. */
+function DashPreview() {
+  return (
+    <>
+      <PageHeader
+        title="Dash dashboard"
+        description="The same analysis built in Python with Plotly Dash. It needs a Python server, so this hosted demo shows a captured preview."
+      />
+      <Alert severity="info" variant="outlined" sx={{ mb: 2, bgcolor: "background.paper" }}>
+        To run it live, clone the repository and run <code>python -m dashboard.app</code>. It then opens in this tab.
+      </Alert>
+      <Card sx={{ overflow: "hidden" }}>
+        <Box
+          component="img"
+          src={`${process.env.PUBLIC_URL || ""}/dash-preview.png`}
+          alt="Plotly Dash dashboard showing revenue KPIs, daily revenue with anomalies, drawdown, hourly demand, fare distribution, borough revenue and payment mix"
+          sx={{ display: "block", width: "100%", height: "auto" }}
+        />
+      </Card>
+      <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1 }}>
+        Preview of the Dash dashboard for Yellow cab · 2015.
+      </Typography>
+    </>
+  );
+}
+
+export default function DashView({ table }) {
+  if (DEMO_MODE) return <DashPreview />;
+  return <LiveDash table={table} />;
+}
+
 /**
  * The Plotly Dash dashboard, embedded in the page. It follows the dataset picked
  * in the top bar; Dash hides its own header and picker in embed mode.
  */
-export default function DashView({ table }) {
+function LiveDash({ table }) {
   const [status, setStatus] = useState("checking"); // checking | up | down
   const [attempt, setAttempt] = useState(0);
 

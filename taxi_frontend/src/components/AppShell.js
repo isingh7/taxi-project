@@ -29,6 +29,12 @@ import { tableLabel, num } from "../format";
 
 export const DRAWER_WIDTH = 248;
 
+const SOURCE_LABELS = {
+  bigquery: { label: "Live · BigQuery", help: "Headline figures queried live from the full BigQuery table" },
+  local: { label: "Local store", help: "Headline figures computed from the validated sample in the local store" },
+  demo: { label: "Demo · sample data", help: "A static snapshot of the API, generated from synthetic sample trips" },
+};
+
 function Brand() {
   return (
     <Box sx={{ display: "flex", alignItems: "center", gap: 1.25, px: 2.5, height: 64 }}>
@@ -141,15 +147,12 @@ export default function AppShell({
             )}
             <DatasetSelect tables={tables} value={table} onChange={onTableChange} />
             {dataSource && (
-              <Tooltip
-                title={dataSource === "bigquery"
-                  ? "Headline figures queried live from the full BigQuery table"
-                  : "Headline figures computed from the validated sample in the local store"}
-              >
+              <Tooltip title={SOURCE_LABELS[dataSource]?.help || ""}>
                 <Chip
                   size="small"
                   variant="outlined"
-                  label={dataSource === "bigquery" ? "Live · BigQuery" : "Local store"}
+                  color={dataSource === "demo" ? "warning" : "default"}
+                  label={SOURCE_LABELS[dataSource]?.label || dataSource}
                   sx={{ display: { xs: "none", sm: "inline-flex" } }}
                 />
               </Tooltip>

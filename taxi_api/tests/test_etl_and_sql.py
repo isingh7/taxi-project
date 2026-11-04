@@ -80,3 +80,19 @@ def test_popular_location_rejects_unknown_column(loaded_table):
     assert sql_reports.most_popular_location(loaded_table, "pickup")["count"] > 0
     with pytest.raises(ValueError):
         sql_reports.most_popular_location(loaded_table, "pickup_latitude; --")
+
+
+@pytest.mark.django_db
+def test_export_static_api_writes_a_complete_snapshot(loaded_table, tmp_path):
+    import json
+
+    from django.core.management import call_command
+
+    call_command("export_static_api", out=str(tmp_path))
+    assert {t["table"] for t in json.loads((tmp_path / "tables.json").read_text()) if t["loaded"]} == {TABLE}
+    headline = json.loads((tmp_path / "data" / f"{TABLE}.json").read_text())
+    assert headline["data_source"] == "local"
+    analytics = json.loads((tmp_path / "analytics" / f"{TABLE}.json").read_text())
+    assert len(analytics["hourly"]) == 24
+    assert (tmp_path / "analytics" / TABLE / "daily.csv").read_text().startswith("date,revenue")
+    assert (tmp_path / "data-quality" / f"{TABLE}.json").exists()

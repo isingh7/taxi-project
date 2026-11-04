@@ -1,5 +1,7 @@
 # NYC Taxi Revenue & Operations Analytics
 
+**Live demo: https://isingh7.github.io/taxi-project/**. The demo is the React app reading a static snapshot of the API, built by GitHub Actions from synthetic sample data (see [`deploy-pages.yml`](.github/workflows/deploy-pages.yml)). The Dash tab shows a preview there, because Dash needs a Python server.
+
 A full-stack data application for New York TLC taxi data. A Python ETL pipeline
 pulls trips from **Google BigQuery** (or CSV, or a synthetic generator),
 validates them with **pandas/NumPy** data-quality rules, joins reference data

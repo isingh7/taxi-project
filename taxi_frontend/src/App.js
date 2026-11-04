@@ -13,7 +13,8 @@ import OperationsView from "./views/OperationsView";
 import DataQualityView from "./views/DataQualityView";
 import DashView from "./views/DashView";
 import useDashboardData from "./hooks/useDashboardData";
-import { dailyCsvUrl, getTables } from "./api";
+import { DEMO_MODE, dailyCsvUrl, getTables } from "./api";
+import DemoNotice from "./components/DemoNotice";
 
 export const VIEWS = [
   { id: "overview", label: "Overview", icon: SpaceDashboardOutlinedIcon, component: OverviewView },
@@ -74,10 +75,11 @@ export default function App() {
       tables={tables}
       table={table}
       onTableChange={setTable}
-      dataSource={data.headline?.data_source}
+      dataSource={DEMO_MODE ? "demo" : data.headline?.data_source}
       quality={data.quality}
       csvUrl={dailyCsvUrl(table)}
     >
+      {DEMO_MODE && <DemoNotice />}
       {current.standalone ? (
         // The Dash view loads its own data, so API errors on this page do not block it.
         <View table={table} />
