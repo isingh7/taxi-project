@@ -89,6 +89,10 @@ export default function DataQualityView({ quality, runs = [] }) {
                 </TableBody>
               </Table>
             </TableContainer>
+            <Typography variant="body2" color="text.secondary" sx={{ px: 2.5, pt: 1.5 }}>
+              <strong>Action</strong> is what a rule does when it finds a problem row: Reject removes it, Fix repairs
+              it, Flag keeps it but marks it for review. Faded rules found no problems in this load.
+            </Typography>
           </Panel>
         </Grid>
 

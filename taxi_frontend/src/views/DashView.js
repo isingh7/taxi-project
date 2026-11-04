@@ -1,41 +1,36 @@
 import React, { useEffect, useState } from "react";
-import { Alert, AlertTitle, Box, Button, Card, CircularProgress, Typography } from "@mui/material";
+import { Alert, AlertTitle, Box, Button, Card, CircularProgress } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import PageHeader from "../components/PageHeader";
+import DashFigures from "../components/DashFigures";
 import { DASHBOARD_URL, DEMO_MODE } from "../api";
 import { tableLabel } from "../format";
 
 export const dashEmbedUrl = (table) =>
   `${DASHBOARD_URL.replace(/\/$/, "")}/?table=${encodeURIComponent(table)}&embed=1`;
 
-/** On a static host there is no Python server, so show a captured preview instead. */
-function DashPreview() {
+/**
+ * On a static host there is no Dash server. The charts are built at deploy time by the
+ * Dash dashboard's own Python figure code and drawn here, following the dataset picker.
+ */
+function DashStatic({ table }) {
   return (
     <>
       <PageHeader
         title="Dash dashboard"
-        description="The same analysis built in Python with Plotly Dash. It needs a Python server, so this hosted demo shows a captured preview."
+        description={`The Plotly Dash version of the dashboard for ${tableLabel(table)} trips. The charts come from the same Python code as the Dash app and are interactive: hover, zoom or drag to explore.`}
       />
       <Alert severity="info" variant="outlined" sx={{ mb: 2, bgcolor: "background.paper" }}>
-        To run it live, clone the repository and run <code>python -m dashboard.app</code>. It then opens in this tab.
+        This hosted demo has no Python server, so the charts were generated when the site was built. To run the full
+        Dash app, clone the repository and run <code>python -m dashboard.app</code>.
       </Alert>
-      <Card sx={{ overflow: "hidden" }}>
-        <Box
-          component="img"
-          src={`${process.env.PUBLIC_URL || ""}/dash-preview.png`}
-          alt="Plotly Dash dashboard showing revenue KPIs, daily revenue with anomalies, drawdown, hourly demand, fare distribution, borough revenue and payment mix"
-          sx={{ display: "block", width: "100%", height: "auto" }}
-        />
-      </Card>
-      <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1 }}>
-        Preview of the Dash dashboard for Yellow cab · 2015.
-      </Typography>
+      <DashFigures table={table} />
     </>
   );
 }
 
 export default function DashView({ table }) {
-  if (DEMO_MODE) return <DashPreview />;
+  if (DEMO_MODE) return <DashStatic table={table} />;
   return <LiveDash table={table} />;
 }
 

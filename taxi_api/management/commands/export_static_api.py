@@ -12,6 +12,7 @@ from pathlib import Path
 from django.core.management.base import BaseCommand, CommandError
 from django.test import Client, override_settings
 
+from dashboard import figures as dash_figures
 from taxi_api.constants import ALLOWED_TABLES
 
 
@@ -51,8 +52,34 @@ class Command(BaseCommand):
             save(f"analytics/{table}/", f"analytics/{table}.json")
             save(f"analytics/{table}/daily.csv", f"analytics/{table}/daily.csv", as_json=False)
             save(f"data-quality/{table}/", f"data-quality/{table}.json")
+            self._export_dash_figures(client, table, out)
 
         size_kb = sum(p.stat().st_size for p in out.rglob("*") if p.is_file()) / 1024
         self.stdout.write(self.style.SUCCESS(
             f"Exported {len(loaded)} tables to {out} ({size_kb:,.0f} KB)"
         ))
+
+    @staticmethod
+    def _export_dash_figures(client: Client, table: str, out: Path) -> None:
+        """Build the Dash dashboard's charts with the same Python figure code Dash uses.
+
+        A static host cannot run the Dash server, so the demo draws these Plotly
+        figures in the browser instead. They stay identical to the live dashboard.
+        """
+        data = client.get(f"/api/analytics/{table}/").json()
+        figures = {
+            "daily": dash_figures.daily_revenue_figure(data["daily"]),
+            "drawdown": dash_figures.drawdown_figure(data["daily"]),
+            "hourly": dash_figures.hourly_figure(data["hourly"]),
+            "fares": dash_figures.fare_histogram_figure(data["fare_distribution"]),
+            "boroughs": dash_figures.ranked_bar_figure(
+                data["boroughs"], "borough", "revenue", "Revenue by pickup borough", "$"
+            ),
+            "payments": dash_figures.ranked_bar_figure(
+                data["payment_mix"], "payment_type", "trips", "Trips by payment type"
+            ),
+        }
+        target = out / "dash" / f"{table}.json"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        payload = {name: json.loads(fig.to_json()) for name, fig in figures.items()}
+        target.write_text(json.dumps(payload, separators=(",", ":")), encoding="utf-8")

@@ -96,3 +96,6 @@ def test_export_static_api_writes_a_complete_snapshot(loaded_table, tmp_path):
     assert len(analytics["hourly"]) == 24
     assert (tmp_path / "analytics" / TABLE / "daily.csv").read_text().startswith("date,revenue")
     assert (tmp_path / "data-quality" / f"{TABLE}.json").exists()
+    dash = json.loads((tmp_path / "dash" / f"{TABLE}.json").read_text())
+    assert set(dash) == {"daily", "drawdown", "hourly", "fares", "boroughs", "payments"}
+    assert all("data" in fig and "layout" in fig for fig in dash.values())
