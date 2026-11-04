@@ -39,6 +39,9 @@ jobs:
         env:
           REACT_APP_DEMO_MODE: "true"
           REACT_APP_REPO_URL: https://github.com/${{ github.repository }}
+          # Repository secret (Settings > Secrets and variables > Actions). Browser map keys are
+          # visible in the built JavaScript, so restrict the key to this site's domain in Google Cloud.
+          REACT_APP_GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
           GENERATE_SOURCEMAP: "false"
         run: |
           npm ci

@@ -3,6 +3,7 @@ import GoogleMapReact from "google-map-react";
 import { Box, Typography } from "@mui/material";
 import MapOutlinedIcon from "@mui/icons-material/MapOutlined";
 import { chartColors } from "../theme";
+import { DEMO_MODE } from "../api";
 
 const MAPS_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
 const NYC_CENTER = { lat: 40.7484, lng: -73.9857 };
@@ -45,7 +46,9 @@ export default function LocationMap({ pickup = {}, dropoff = {}, minHeight = 360
         <Box>
           <MapOutlinedIcon color="disabled" />
           <Typography variant="body2" color="text.secondary">
-            Map disabled. Set REACT_APP_GOOGLE_MAPS_API_KEY in .env.local.
+            {DEMO_MODE
+              ? "The map is not available in this demo."
+              : "Map disabled. Set REACT_APP_GOOGLE_MAPS_API_KEY in .env.local."}
           </Typography>
         </Box>
       </Box>

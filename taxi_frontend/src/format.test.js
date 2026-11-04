@@ -2,6 +2,7 @@ import { hourRange, minutes, money, moneyCompact, num, pct, shortDate, tableLabe
 import { mapCenter } from "./components/LocationMap";
 
 jest.mock("google-map-react", () => () => null);
+jest.mock("./api", () => ({ DEMO_MODE: false }));
 
 test("money uses US grouping regardless of browser locale", () => {
   expect(money(364154.82)).toBe("$364,154.82");
