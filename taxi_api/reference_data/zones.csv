@@ -1,0 +1,10 @@
+zone_id,zone_name,borough,min_lat,max_lat,min_lon,max_lon,priority
+1,JFK Airport,Queens,40.6190,40.6680,-73.8250,-73.7450,1
+2,LaGuardia Airport,Queens,40.7640,40.7860,-73.8900,-73.8550,2
+3,Midtown Manhattan,Manhattan,40.7400,40.7700,-74.0100,-73.9650,3
+4,Lower Manhattan,Manhattan,40.7000,40.7400,-74.0200,-73.9700,4
+5,Upper Manhattan,Manhattan,40.7700,40.8820,-74.0000,-73.9070,5
+6,Bronx,Bronx,40.7850,40.9170,-73.9330,-73.7650,6
+7,Brooklyn,Brooklyn,40.5700,40.7390,-74.0420,-73.8330,7
+8,Queens,Queens,40.5410,40.8000,-73.9620,-73.7000,8
+9,Staten Island,Staten Island,40.4960,40.6510,-74.2550,-74.0520,9

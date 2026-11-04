@@ -1,0 +1,48 @@
+# Manual deploy to AWS ECS (Fargate). Uses GitHub OIDC, so no long-lived AWS keys are stored.
+# Required repository variables: AWS_REGION, AWS_ACCOUNT_ID, AWS_DEPLOY_ROLE, ECS_CLUSTER
+name: Deploy to ECS
+
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - { service: taxi-api,       dockerfile: Dockerfile,           task: infra/ecs/task-definition-api.json,       container: api }
+          - { service: taxi-dashboard, dockerfile: dashboard/Dockerfile, task: infra/ecs/task-definition-dashboard.json, container: dashboard }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID }}:role/${{ vars.AWS_DEPLOY_ROLE }}
+          aws-region: ${{ vars.AWS_REGION }}
+      - id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      - name: Build and push image
+        id: image
+        run: |
+          IMAGE=${{ steps.ecr.outputs.registry }}/${{ matrix.service }}:${{ github.sha }}
+          docker build -f ${{ matrix.dockerfile }} -t "$IMAGE" .
+          docker push "$IMAGE"
+          echo "uri=$IMAGE" >> "$GITHUB_OUTPUT"
+      - name: Fill in account placeholders
+        run: sed -i "s/<ACCOUNT_ID>/${{ vars.AWS_ACCOUNT_ID }}/g; s/<REGION>/${{ vars.AWS_REGION }}/g" ${{ matrix.task }}
+      - id: taskdef
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: ${{ matrix.task }}
+          container-name: ${{ matrix.container }}
+          image: ${{ steps.image.outputs.uri }}
+      - uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.taskdef.outputs.task-definition }}
+          service: ${{ matrix.service }}
+          cluster: ${{ vars.ECS_CLUSTER }}
+          wait-for-service-stability: true

@@ -1,0 +1,27 @@
+{
+  "family": "taxi-dashboard",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "256",
+  "memory": "512",
+  "executionRoleArn": "arn:aws:iam::<ACCOUNT_ID>:role/taxiEcsTaskExecutionRole",
+  "containerDefinitions": [
+    {
+      "name": "dashboard",
+      "image": "<ACCOUNT_ID>.dkr.ecr.<REGION>.amazonaws.com/taxi-dashboard:latest",
+      "essential": true,
+      "portMappings": [{ "containerPort": 8050, "protocol": "tcp" }],
+      "environment": [
+        { "name": "API_BASE_URL", "value": "http://api.taxi.local:8000/api" }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/taxi-dashboard",
+          "awslogs-region": "<REGION>",
+          "awslogs-stream-prefix": "dashboard"
+        }
+      }
+    }
+  ]
+}

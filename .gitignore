@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+*.sqlite3
+staticfiles/
+.coverage
+htmlcov/
+.pytest_cache/
+.ruff_cache/
+# GCP service-account keys must never be committed
+*credentials*.json

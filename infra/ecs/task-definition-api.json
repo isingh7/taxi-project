@@ -1,0 +1,42 @@
+{
+  "family": "taxi-api",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::<ACCOUNT_ID>:role/taxiEcsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::<ACCOUNT_ID>:role/taxiApiTaskRole",
+  "containerDefinitions": [
+    {
+      "name": "api",
+      "image": "<ACCOUNT_ID>.dkr.ecr.<REGION>.amazonaws.com/taxi-api:latest",
+      "essential": true,
+      "portMappings": [{ "containerPort": 8000, "protocol": "tcp" }],
+      "environment": [
+        { "name": "DJANGO_DEBUG", "value": "false" },
+        { "name": "DJANGO_ALLOWED_HOSTS", "value": "api.taxi.example.com" },
+        { "name": "CORS_ALLOWED_ORIGINS", "value": "https://taxi.example.com" },
+        { "name": "POSTGRES_HOST", "value": "<RDS_ENDPOINT>" },
+        { "name": "POSTGRES_DB", "value": "taxi" },
+        { "name": "BIGQUERY_ENABLED", "value": "false" }
+      ],
+      "secrets": [
+        { "name": "DJANGO_SECRET_KEY", "valueFrom": "arn:aws:secretsmanager:<REGION>:<ACCOUNT_ID>:secret:taxi/django-secret-key" },
+        { "name": "POSTGRES_USER", "valueFrom": "arn:aws:secretsmanager:<REGION>:<ACCOUNT_ID>:secret:taxi/rds:username::" },
+        { "name": "POSTGRES_PASSWORD", "valueFrom": "arn:aws:secretsmanager:<REGION>:<ACCOUNT_ID>:secret:taxi/rds:password::" }
+      ],
+      "healthCheck": {
+        "command": ["CMD-SHELL", "python -c \"import urllib.request;urllib.request.urlopen('http://localhost:8000/api/health/')\""],
+        "interval": 30, "timeout": 5, "retries": 3, "startPeriod": 30
+      },
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/taxi-api",
+          "awslogs-region": "<REGION>",
+          "awslogs-stream-prefix": "api"
+        }
+      }
+    }
+  ]
+}

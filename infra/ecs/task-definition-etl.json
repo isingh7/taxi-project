@@ -1,0 +1,38 @@
+{
+  "family": "taxi-etl",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "1024",
+  "memory": "4096",
+  "executionRoleArn": "arn:aws:iam::<ACCOUNT_ID>:role/taxiEcsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::<ACCOUNT_ID>:role/taxiApiTaskRole",
+  "containerDefinitions": [
+    {
+      "name": "etl",
+      "image": "<ACCOUNT_ID>.dkr.ecr.<REGION>.amazonaws.com/taxi-api:latest",
+      "essential": true,
+      "command": ["sh", "-c", "python manage.py migrate --noinput && python manage.py ingest_trips --all --source bigquery --rows 100000"],
+      "environment": [
+        { "name": "DJANGO_DEBUG", "value": "false" },
+        { "name": "POSTGRES_HOST", "value": "<RDS_ENDPOINT>" },
+        { "name": "POSTGRES_DB", "value": "taxi" },
+        { "name": "GOOGLE_APPLICATION_CREDENTIALS", "value": "/tmp/gcp.json" }
+      ],
+      "secrets": [
+        { "name": "DJANGO_SECRET_KEY", "valueFrom": "arn:aws:secretsmanager:<REGION>:<ACCOUNT_ID>:secret:taxi/django-secret-key" },
+        { "name": "POSTGRES_USER", "valueFrom": "arn:aws:secretsmanager:<REGION>:<ACCOUNT_ID>:secret:taxi/rds:username::" },
+        { "name": "POSTGRES_PASSWORD", "valueFrom": "arn:aws:secretsmanager:<REGION>:<ACCOUNT_ID>:secret:taxi/rds:password::" },
+        { "name": "GCP_SERVICE_ACCOUNT_JSON", "valueFrom": "arn:aws:secretsmanager:<REGION>:<ACCOUNT_ID>:secret:taxi/gcp-service-account" }
+      ],
+      "entryPoint": ["sh", "-c", "printf '%s' \"$GCP_SERVICE_ACCOUNT_JSON\" > /tmp/gcp.json && exec \"$0\" \"$@\""],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/taxi-etl",
+          "awslogs-region": "<REGION>",
+          "awslogs-stream-prefix": "etl"
+        }
+      }
+    }
+  ]
+}
